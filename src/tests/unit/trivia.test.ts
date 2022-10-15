@@ -12,9 +12,7 @@ describe("Trivia Service", () => {
     jest.useFakeTimers();
     jest.spyOn(global, "setTimeout");
     jest.spyOn(global, "clearTimeout");
-  });
 
-  beforeEach(() => {
     questions = [
       {
         id: "question-2",
@@ -29,6 +27,7 @@ describe("Trivia Service", () => {
         points: 10,
         title: "What color is the sky?",
         correctOptionIndex: 0,
+        time: 15000,
       },
       {
         id: "question-3",
@@ -39,18 +38,12 @@ describe("Trivia Service", () => {
       },
     ];
     triviaService = new TriviaService(questions);
-    triviaService.start();
-    expect(setTimeout).toBeCalledTimes(1);
-    expect(setTimeout).toHaveBeenLastCalledWith(
-      triviaService.nextQuestion,
-      DEFAULT_QUESTION_TIME_IN_MS
-    );
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     jest.clearAllTimers();
     jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it("should create a trivia service with a given set of questions and start the question interval", () => {
@@ -74,7 +67,29 @@ describe("Trivia Service", () => {
     ]);
   });
 
+  it("should change to the next question and reset the timeout", () => {
+    jest.spyOn(triviaService, "nextQuestion");
+    triviaService.start();
+    expect(triviaService.getCurrentQuestion()).toMatchObject(questions[0]);
+    expect(setTimeout).toBeCalledTimes(1);
+    jest.runOnlyPendingTimers();
+    expect(setTimeout).toBeCalledTimes(2);
+    expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 15000);
+    expect(triviaService.getCurrentQuestion()).toMatchObject(questions[1]);
+  });
+
+  it("should end the trivia if runs the last question timeout", () => {
+    triviaService = new TriviaService(questions);
+    jest.spyOn(triviaService, "end");
+    triviaService.start();
+    triviaService.nextQuestion();
+    triviaService.nextQuestion();
+    jest.runAllTimers();
+    expect(triviaService.end).toHaveBeenCalledTimes(1);
+  });
+
   it("should answer wrong the current question given a comment", () => {
+    triviaService.start();
     expect(triviaService.getResults()).toMatchObject([]);
 
     triviaService.tryAnswer({
@@ -111,6 +126,7 @@ describe("Trivia Service", () => {
   });
 
   it("should answer correctly the current question and add score to the user", () => {
+    triviaService.start();
     triviaService.tryAnswer({
       timestamp: new Date().getTime(),
       option: "299792458m/s",
@@ -128,7 +144,29 @@ describe("Trivia Service", () => {
     ]);
   });
 
+  it("should reset the trivia with new questions", () => {
+    triviaService.start();
+    jest.resetAllMocks();
+    expect(triviaService.getIsStarted()).toBe(true);
+    const newQuestions: Question[] = [
+      {
+        id: "new-question-1",
+        options: [],
+        correctOptionIndex: -1,
+        title: "Test new question",
+        points: 0,
+      },
+    ];
+    triviaService.reset(newQuestions);
+    expect(triviaService.getQuestions()).toMatchObject(newQuestions);
+    expect(triviaService.getCurrentQuestion()).toMatchObject(newQuestions[0]);
+    expect(triviaService.getIsStarted()).toBe(false);
+    expect(triviaService.getResults()).toMatchObject([]);
+    expect(setTimeout).toHaveBeenCalledTimes(0);
+  });
+
   it("should end the trivia and return the winners", async () => {
+    triviaService.start();
     triviaService.tryAnswer({
       timestamp: new Date().getTime(),
       userId: "test-user-id",
@@ -149,9 +187,9 @@ describe("Trivia Service", () => {
       username: "Foo Bar",
       option: "299792458m/s",
     });
-
+    jest.clearAllMocks();
+    jest.resetAllMocks();
     const result = triviaService.end();
-    jest.runAllTicks();
     expect(clearTimeout).toBeCalledTimes(1);
     expect(clearTimeout).toBeCalledWith((triviaService as any).interval);
     expect(result).toMatchObject([

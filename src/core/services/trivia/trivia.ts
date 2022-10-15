@@ -15,10 +15,14 @@ export class TriviaService {
   private currentQuestion: Question;
   private results: TriviaResult[] = [];
   private interval = null;
+  private isStarted = false;
 
   constructor(questions: Question[]) {
-    this.questions = questions;
-    this.currentQuestion = questions[0];
+    this.reset(questions);
+  }
+
+  getIsStarted() {
+    return this.isStarted;
   }
 
   getQuestions() {
@@ -34,6 +38,7 @@ export class TriviaService {
   }
 
   tryAnswer(answer: Answer) {
+    if (!this.isStarted) return;
     const currentQuestion = this.getCurrentQuestion();
     const result: TriviaResult = {
       username: answer.username,
@@ -66,16 +71,18 @@ export class TriviaService {
   }
 
   start() {
+    this.isStarted = true;
     this.interval = setTimeout(
-      this.nextQuestion,
+      this.nextQuestion.bind(this),
       this.getCurrentQuestion().time || DEFAULT_QUESTION_TIME_IN_MS
     );
   }
 
   end() {
+    this.isStarted = false;
     clearTimeout(this.interval);
     const highestScore =
-      this.results.sort((a, b) => (b.score < a.score ? -1 : 1))[0].score || 0;
+      this.results.sort((a, b) => (b.score < a.score ? -1 : 1))[0]?.score || 0;
     return this.results
       .filter((result) => result.score === highestScore)
       .map((result) => ({
@@ -85,5 +92,30 @@ export class TriviaService {
       }));
   }
 
-  nextQuestion() {}
+  reset(questions: Question[]) {
+    clearTimeout(this.interval);
+    this.isStarted = false;
+    this.interval = null;
+    this.results = [];
+    this.questions = questions;
+    this.currentQuestion = questions[0];
+  }
+
+  nextQuestion() {
+    clearTimeout(this.interval);
+    const questionIndex = this.questions.findIndex(
+      (q) => q.id === this.getCurrentQuestion().id
+    );
+
+    if (questionIndex > -1) {
+      this.currentQuestion = this.questions[questionIndex + 1];
+
+      if (!this.currentQuestion) {
+        // end trivia
+        return this.end();
+      }
+
+      this.start();
+    }
+  }
 }
