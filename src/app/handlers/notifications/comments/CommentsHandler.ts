@@ -1,5 +1,5 @@
-import { BaseHandler } from "app/handlers/BaseHandler.mjs";
-import { App } from "app/index.mjs";
+import { BaseHandler } from "../../BaseHandler";
+import { App } from "../../../";
 
 export type Comment = {};
 export type OnCommentCallback = (comment: Comment) => void;

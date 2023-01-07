@@ -1,17 +1,31 @@
-Features:
+# Streaming Trivia
 
-- Create a questions pool which will choose one every X minutes.
-- Manually display the next question.
-- Read the comments from lives sources (Twitch, Facebook)
-- If the user answer the current question correctly, it will gain points, if not it will count the try.
-- At the end of the live (or the trivia) the X users with more points will be choosen as winners.
+Buit with Node.js this simple app will allow you include an URL widget that displays a trivia of questions and the winners.
 
-Conditions:
+## How to run:
 
-- The user must be following the channel and liked the current live video (Facebook).
-- The comment must have the following format: [username],[current-question-answer]
+- Install `pnpm` globally using npm: `$ npm install -g pnpm`
+- Clone this repo and go to the project root folder.
+- Install the project dependencies: `$ pnpm install`
+- Build the app: `$ pnpm build`
+- Run the app `$ pnpm start`
+- The process will display the URL you should add as widget on your streaming, example: http://localhost:3000
 
-Tools:
+## Commands:
 
-- CLI (create a new trivia, for announce the winners, add and show custom questions, and so on ...)
-- Serve a web page displaying the current question and the winners at the end of the trivia.
+| Command                                        | Description                                                                   | Implemented |
+| ---------------------------------------------- | ----------------------------------------------------------------------------- | ----------- |
+| `connect [twitch\|facebook]` (not implemented) | Authorize the chosen platform to read comments from the active live streaming | ❌          |
+| `set-questions [path-to-questions-file]`       | Loads a set of questions from file                                            | ❌          |
+| `start`                                        | Start the trvia with a set of questions                                       | ❌          |
+| `stop`                                         | Stop the trivia and display the winners                                       | ❌          |
+| `reset`                                        | Stop the trivia without displaying the winners                                | ❌          |
+| `next`                                         | Set the next question as current                                              | ❌          |
+| `pause`                                        | Pause the countdown timer for the current question                            | ❌          |
+| `resume`                                       | Resume the countdown timer for the current question                           | ❌          |
+
+## Environment variables
+
+| Name | Default | Description                                      |
+| ---- | ------- | ------------------------------------------------ |
+| PORT | `3000`  | Http server port (used to create the widget URL) |

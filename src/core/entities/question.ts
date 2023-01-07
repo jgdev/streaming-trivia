@@ -5,4 +5,5 @@ export type Question = {
   options: string[];
   correctOptionIndex: number;
   time?: number;
+  startedAt?: number;
 };

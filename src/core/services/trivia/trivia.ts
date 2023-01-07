@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Answer } from "core/entities/answer";
 import { Question } from "core/entities/question";
 
@@ -17,12 +18,18 @@ export class TriviaService {
   private interval = null;
   private isStarted = false;
 
-  constructor(questions: Question[]) {
-    this.reset(questions);
+  constructor() {
+    this.reset();
   }
 
   getIsStarted() {
     return this.isStarted;
+  }
+
+  setQuestions(questions: Question[]) {
+    this.questions = questions;
+    this.currentQuestion = questions[0];
+    this.currentQuestion.startedAt = Date.now();
   }
 
   getQuestions() {
@@ -74,7 +81,7 @@ export class TriviaService {
     this.isStarted = true;
     this.interval = setTimeout(
       this.nextQuestion.bind(this),
-      this.getCurrentQuestion().time || DEFAULT_QUESTION_TIME_IN_MS
+      this.getCurrentQuestion()?.time || DEFAULT_QUESTION_TIME_IN_MS
     );
   }
 
@@ -92,8 +99,8 @@ export class TriviaService {
       }));
   }
 
-  reset(questions: Question[]) {
-    clearTimeout(this.interval);
+  reset(questions: Question[] = this.questions || []) {
+    if (this.interval !== null) clearTimeout(this.interval);
     this.isStarted = false;
     this.interval = null;
     this.results = [];
@@ -102,20 +109,37 @@ export class TriviaService {
   }
 
   nextQuestion() {
-    clearTimeout(this.interval);
+    if (this.interval !== null) clearTimeout(this.interval);
     const questionIndex = this.questions.findIndex(
       (q) => q.id === this.getCurrentQuestion().id
     );
 
-    if (questionIndex > -1) {
+    if (questionIndex > -1 && this.questions[questionIndex + 1]) {
       this.currentQuestion = this.questions[questionIndex + 1];
-
-      if (!this.currentQuestion) {
-        // end trivia
-        return this.end();
-      }
+      this.currentQuestion.startedAt = Date.now();
 
       this.start();
+    } else {
+      return this.end();
     }
+  }
+
+  parseQuestionsFromContent(content: string): Question[] {
+    const lines = content.split("\n");
+    return lines.map((line) => {
+      const id = crypto.randomUUID();
+      const [title, points, timeout = "0", ...options] = line.split(",");
+      const correctOptionIndex = options.findIndex((option) =>
+        option.startsWith("@")
+      );
+      return {
+        id,
+        title: title.replace("@", ""),
+        points: parseInt(points),
+        options,
+        correctOptionIndex,
+        time: parseInt(timeout) || DEFAULT_QUESTION_TIME_IN_MS,
+      };
+    });
   }
 }

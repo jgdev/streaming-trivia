@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
+    "strict": false,
     "rootDir": ".",
     "outDir": "dist",
     "baseUrl": "src",
     "composite": true,
     "declaration": true,
     "sourceMap": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strictFunctionTypes": false
   },
   "include": ["./src/**/*.ts"]
 }

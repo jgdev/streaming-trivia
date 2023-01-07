@@ -1,6 +1,6 @@
 import { CommentsService } from "../core/services/comments/comments";
 import { TriviaService } from "../core/services/trivia/trivia";
-import { createCli } from "./cli";
+import CLI from "./cli";
 import { createNotificationsHandlers } from "./handlers/notifications";
 
 export type Services = {
@@ -13,12 +13,16 @@ export type App = {
 };
 
 export const createApp = () => {
-  let services: Services = {} as Services;
-
-  const app = {
-    services,
+  const app: App = {
+    services: {
+      trivia: new TriviaService(),
+      comments: new CommentsService(),
+    },
   };
 
   createNotificationsHandlers(app);
-  createCli(app);
+  const cli = new CLI(app, {
+    input: process.stdin,
+    output: process.stdout,
+  });
 };

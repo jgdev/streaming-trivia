@@ -1,0 +1,2 @@
+Como se llama el chombo?,100,2000,Miguel,@Abdias,Adidas,Jose Antonio
+What it's the speed of light?,1000,3000,1235km/h,@299792458m/s

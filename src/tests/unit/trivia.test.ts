@@ -1,8 +1,5 @@
 import { Question } from "../../core/entities/question";
-import {
-  TriviaService,
-  DEFAULT_QUESTION_TIME_IN_MS,
-} from "../../core/services/trivia/trivia";
+import { TriviaService } from "../../core/services/trivia/trivia";
 
 describe("Trivia Service", () => {
   let triviaService: TriviaService;
@@ -37,7 +34,8 @@ describe("Trivia Service", () => {
         correctOptionIndex: 2,
       },
     ];
-    triviaService = new TriviaService(questions);
+    triviaService = new TriviaService();
+    triviaService.setQuestions(questions);
   });
 
   afterEach(() => {
@@ -79,7 +77,8 @@ describe("Trivia Service", () => {
   });
 
   it("should end the trivia if runs the last question timeout", () => {
-    triviaService = new TriviaService(questions);
+    triviaService = new TriviaService();
+    triviaService.setQuestions(questions);
     jest.spyOn(triviaService, "end");
     triviaService.start();
     triviaService.nextQuestion();
